@@ -35,14 +35,9 @@
 
 #include "stream.h"
 #include "dictionary.h"
-#include "frame.h"
 #include "format.h"
 #include "shrink_context.h"
 #include "shrink_streaming.h"
-#include "shrink_inmem.h"
-#include "expand_context.h"
-#include "expand_streaming.h"
-#include "expand_inmem.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,16 +55,11 @@ typedef enum _lzsa_status_t {
    LZSA_ERROR_COMPRESSION,                /**< Internal compression error */
    LZSA_ERROR_RAW_TOOLARGE,               /**< Input is too large to be compressed to a raw block */
    LZSA_ERROR_RAW_UNCOMPRESSED,           /**< Input is incompressible and raw blocks don't support uncompressed data */
-
-   /* Decompression-specific status codes */
-   LZSA_ERROR_FORMAT,                     /**< Invalid input format or magic number when decompressing */
-   LZSA_ERROR_DECOMPRESSION               /**< Internal decompression error */
 } lzsa_status_t;
 
 /* Compression flags */
 #define LZSA_FLAG_FAVOR_RATIO    (1<<0)      /**< 1 to compress with the best ratio, 0 to trade some compression ratio for extra decompression speed */
-#define LZSA_FLAG_RAW_BLOCK      (1<<1)      /**< 1 to emit raw block */
-#define LZSA_FLAG_RAW_BACKWARD   (1<<2)      /**< 1 to compress or decompress raw block backward */
+#define LZSA_FLAG_BACKWARD       (1<<1)      /**< 1 to compress raw block backward */
 
 /**
  * Reverse bytes in the specified buffer

@@ -53,7 +53,6 @@ typedef struct _lzsa_stats lzsa_stats;
  * @param pszDictionaryFilename name of dictionary file, or NULL for none
  * @param nFlags compression flags (LZSA_FLAG_xxx)
  * @param nMinMatchSize minimum match size
- * @param nFormatVersion version of format to use (1-2)
  * @param progress progress function, called after compressing each block, or NULL for none
  * @param pOriginalSize pointer to returned input(source) size, updated when this function is successful
  * @param pCompressedSize pointer to returned output(compressed) size, updated when this function is successful
@@ -64,7 +63,7 @@ typedef struct _lzsa_stats lzsa_stats;
  * @return LZSA_OK for success, or an error value from lzsa_status_t
  */
 lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFilename, const char *pszDictionaryFilename,
-   const unsigned int nFlags, const int nMinMatchSize, const int nFormatVersion,
+   const unsigned int nFlags, const int nMinMatchSize,
    void(*progress)(long long nOriginalSize, long long nCompressedSize), long long *pOriginalSize, long long *pCompressedSize, int *pCommandCount, int *pSafeDist, lzsa_stats *pStats);
 
 /*-------------- Streaming API -------------- */
@@ -78,7 +77,6 @@ lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFi
  * @param nDictionaryDataSize size of dictionary contents, or 0
  * @param nFlags compression flags (LZSA_FLAG_xxx)
  * @param nMinMatchSize minimum match size
- * @param nFormatVersion version of format to use (1-2)
  * @param progress progress function, called after compressing each block, or NULL for none
  * @param pOriginalSize pointer to returned input(source) size, updated when this function is successful
  * @param pCompressedSize pointer to returned output(compressed) size, updated when this function is successful
@@ -89,7 +87,7 @@ lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFi
  * @return LZSA_OK for success, or an error value from lzsa_status_t
  */
 lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOutStream, const void *pDictionaryData, int nDictionaryDataSize,
-   const unsigned int nFlags, const int nMinMatchSize, const int nFormatVersion,
+   const unsigned int nFlags, const int nMinMatchSize,
    void(*progress)(long long nOriginalSize, long long nCompressedSize), long long *pOriginalSize, long long *pCompressedSize, int *pCommandCount, int *pSafeDist, lzsa_stats *pStats);
 
 #ifdef __cplusplus

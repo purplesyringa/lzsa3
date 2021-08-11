@@ -49,16 +49,12 @@ extern "C" {
 #define VISITED_FLAG 0x80000000
 #define EXCL_VISITED_MASK  0x7fffffff
 
-#define NARRIVALS_PER_POSITION_V1 8
-#define NARRIVALS_PER_POSITION_V2_SMALL 9
-#define NARRIVALS_PER_POSITION_V2_BIG 32
+#define NARRIVALS_PER_POSITION_SMALL 9
+#define NARRIVALS_PER_POSITION_BIG 32
 #define ARRIVALS_PER_POSITION_SHIFT 5
 
-#define NMATCHES_PER_INDEX_V1 8
-#define MATCHES_PER_INDEX_SHIFT_V1 3
-
-#define NMATCHES_PER_INDEX_V2 64
-#define MATCHES_PER_INDEX_SHIFT_V2 6
+#define NMATCHES_PER_INDEX 64
+#define MATCHES_PER_INDEX_SHIFT 6
 
 #define LEAVE_ALONE_MATCH_SIZE 300
 #define LEAVE_ALONE_MATCH_SIZE_SMALL 1000
@@ -130,7 +126,6 @@ typedef struct _lzsa_compressor {
    int *next_offset_for_pos;
    int *offset_cache;
    int min_match_size;
-   int format_version;
    int flags;
    int safe_dist;
    int num_commands;
@@ -147,7 +142,7 @@ typedef struct _lzsa_compressor {
  *
  * @return 0 for success, non-zero for failure
  */
-int lzsa_compressor_init(lzsa_compressor *pCompressor, const int nMaxWindowSize, const int nMinMatchSize, const int nFormatVersion, const int nFlags);
+int lzsa_compressor_init(lzsa_compressor *pCompressor, const int nMaxWindowSize, const int nMinMatchSize, const int nFlags);
 
 /**
  * Clean up compression context and free up any associated resources

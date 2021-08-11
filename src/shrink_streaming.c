@@ -34,7 +34,6 @@
 #include <string.h>
 #include "shrink_streaming.h"
 #include "format.h"
-#include "frame.h"
 #include "lib.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -65,7 +64,6 @@ static void lzsa_delete_file(const char *pszInFilename) {
  * @param pszDictionaryFilename name of dictionary file, or NULL for none
  * @param nFlags compression flags (LZSA_FLAG_xxx)
  * @param nMinMatchSize minimum match size
- * @param nFormatVersion version of format to use (1-2)
  * @param progress progress function, called after compressing each block, or NULL for none
  * @param pOriginalSize pointer to returned input(source) size, updated when this function is successful
  * @param pCompressedSize pointer to returned output(compressed) size, updated when this function is successful
@@ -75,7 +73,7 @@ static void lzsa_delete_file(const char *pszInFilename) {
  *
  * @return LZSA_OK for success, or an error value from lzsa_status_t
  */
-lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFilename, const char *pszDictionaryFilename, const unsigned int nFlags, const int nMinMatchSize, const int nFormatVersion,
+lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFilename, const char *pszDictionaryFilename, const unsigned int nFlags, const int nMinMatchSize,
       void(*progress)(long long nOriginalSize, long long nCompressedSize), long long *pOriginalSize, long long *pCompressedSize, int *pCommandCount, int *pSafeDist, lzsa_stats *pStats) {
    lzsa_stream_t inStream, outStream;
    void *pDictionaryData = NULL;
@@ -100,7 +98,7 @@ lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFi
       return nStatus;
    }
 
-   nStatus = lzsa_compress_stream(&inStream, &outStream, pDictionaryData, nDictionaryDataSize, nFlags, nMinMatchSize, nFormatVersion, progress, pOriginalSize, pCompressedSize, pCommandCount, pSafeDist, pStats);
+   nStatus = lzsa_compress_stream(&inStream, &outStream, pDictionaryData, nDictionaryDataSize, nFlags, nMinMatchSize, progress, pOriginalSize, pCompressedSize, pCommandCount, pSafeDist, pStats);
 
    lzsa_dictionary_free(&pDictionaryData);
    outStream.close(&outStream);
@@ -124,7 +122,6 @@ lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFi
  * @param nDictionaryDataSize size of dictionary contents, or 0
  * @param nFlags compression flags (LZSA_FLAG_xxx)
  * @param nMinMatchSize minimum match size
- * @param nFormatVersion version of format to use (1-2)
  * @param progress progress function, called after compressing each block, or NULL for none
  * @param pOriginalSize pointer to returned input(source) size, updated when this function is successful
  * @param pCompressedSize pointer to returned output(compressed) size, updated when this function is successful
@@ -135,15 +132,14 @@ lzsa_status_t lzsa_compress_file(const char *pszInFilename, const char *pszOutFi
  * @return LZSA_OK for success, or an error value from lzsa_status_t
  */
 lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOutStream, const void *pDictionaryData, int nDictionaryDataSize,
-                                   const unsigned int nFlags, const int nMinMatchSize, const int nFormatVersion,
+                                   const unsigned int nFlags, const int nMinMatchSize,
                                    void(*progress)(long long nOriginalSize, long long nCompressedSize), long long *pOriginalSize, long long *pCompressedSize, int *pCommandCount, int *pSafeDist, lzsa_stats *pStats) {
    unsigned char *pInData, *pOutData;
    lzsa_compressor compressor;
    long long nOriginalSize = 0LL, nCompressedSize = 0LL;
    int nResult;
-   unsigned char cFrameData[16];
    int nError = 0;
-   int nRawPadding = (nFlags & LZSA_FLAG_RAW_BLOCK) ? 8 : 0;
+   int nRawPadding = 8;
 
    pInData = (unsigned char*)malloc(BLOCK_SIZE * 2);
    if (!pInData) {
@@ -160,7 +156,7 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
    }
    memset(pOutData, 0, BLOCK_SIZE);
 
-   nResult = lzsa_compressor_init(&compressor, BLOCK_SIZE * 2, nMinMatchSize, nFormatVersion, nFlags);
+   nResult = lzsa_compressor_init(&compressor, BLOCK_SIZE * 2, nMinMatchSize, nFlags);
    if (nResult != 0) {
       free(pOutData);
       pOutData = NULL;
@@ -169,17 +165,6 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
       pInData = NULL;
 
       return LZSA_ERROR_MEMORY;
-   }
-
-   if ((nFlags & LZSA_FLAG_RAW_BLOCK) == 0) {
-      int nHeaderSize = lzsa_encode_header(cFrameData, 16, nFormatVersion);
-      if (nHeaderSize < 0)
-         nError = LZSA_ERROR_COMPRESSION;
-      else {
-         if (pOutStream->write(pOutStream, cFrameData, nHeaderSize) != nHeaderSize)
-            nError = LZSA_ERROR_DST;
-         nCompressedSize += (long long)nHeaderSize;
-      }
    }
 
    int nPreviousBlockSize = 0;
@@ -198,7 +183,7 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
 
       nInDataSize = (int)pInStream->read(pInStream, pInData + BLOCK_SIZE, BLOCK_SIZE);
       if (nInDataSize > 0) {
-         if ((nFlags & LZSA_FLAG_RAW_BLOCK) != 0 && nNumBlocks) {
+         if (nNumBlocks) {
             nError = LZSA_ERROR_RAW_TOOLARGE;
             break;
          }
@@ -209,18 +194,6 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
          nOutDataSize = lzsa_compressor_shrink_block(&compressor, pInData + BLOCK_SIZE - nPreviousBlockSize, nPreviousBlockSize, nInDataSize, pOutData, ((nInDataSize + nRawPadding) >= BLOCK_SIZE) ? BLOCK_SIZE : (nInDataSize + nRawPadding));
          if (nOutDataSize >= 0) {
             /* Write compressed block */
-
-            if ((nFlags & LZSA_FLAG_RAW_BLOCK) == 0) {
-               int nBlockheaderSize = lzsa_encode_compressed_block_frame(cFrameData, 16, nOutDataSize);
-               if (nBlockheaderSize < 0)
-                  nError = LZSA_ERROR_COMPRESSION;
-               else {
-                  nCompressedSize += (long long)nBlockheaderSize;
-                  if (pOutStream->write(pOutStream, cFrameData, nBlockheaderSize) != (size_t)nBlockheaderSize) {
-                     nError = LZSA_ERROR_DST;
-                  }
-               }
-            }
 
             if (!nError) {
                if (pOutStream->write(pOutStream, pOutData, (size_t)nOutDataSize) != (size_t)nOutDataSize) {
@@ -235,28 +208,8 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
          else {
             /* Write uncompressible, literal block */
 
-            if ((nFlags & LZSA_FLAG_RAW_BLOCK) != 0) {
-               nError = LZSA_ERROR_RAW_UNCOMPRESSED;
-               break;
-            }
-
-            int nBlockheaderSize = lzsa_encode_uncompressed_block_frame(cFrameData, 16, nInDataSize);
-            if (nBlockheaderSize < 0)
-               nError = LZSA_ERROR_COMPRESSION;
-            else {
-               if (pOutStream->write(pOutStream, cFrameData, nBlockheaderSize) != (size_t)nBlockheaderSize) {
-                  nError = LZSA_ERROR_DST;
-               }
-               else {
-                  if (pOutStream->write(pOutStream, pInData + BLOCK_SIZE, (size_t)nInDataSize) != (size_t)nInDataSize) {
-                     nError = LZSA_ERROR_DST;
-                  }
-                  else {
-                     nOriginalSize += (long long)nInDataSize;
-                     nCompressedSize += (long long)nBlockheaderSize + (long long)nInDataSize;
-                  }
-               }
-            }
+            nError = LZSA_ERROR_RAW_UNCOMPRESSED;
+            break;
          }
 
          nPreviousBlockSize = nInDataSize;
@@ -267,23 +220,6 @@ lzsa_status_t lzsa_compress_stream(lzsa_stream_t *pInStream, lzsa_stream_t *pOut
          if (progress)
             progress(nOriginalSize, nCompressedSize);
       }
-   }
-
-   if (!nError) {
-      int nFooterSize;
-
-      if ((nFlags & LZSA_FLAG_RAW_BLOCK) != 0) {
-         nFooterSize = 0;
-      }
-      else {
-         nFooterSize = lzsa_encode_footer_frame(cFrameData, 16);
-         if (nFooterSize < 0)
-            nError = LZSA_ERROR_COMPRESSION;
-      }
-
-      if (pOutStream->write(pOutStream, cFrameData, nFooterSize) != nFooterSize)
-         nError = LZSA_ERROR_DST;
-      nCompressedSize += (long long)nFooterSize;
    }
 
    if (progress)

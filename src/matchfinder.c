@@ -90,30 +90,17 @@ int lzsa_build_suffix_array(lzsa_compressor *pCompressor, const unsigned char *p
    intervals[0] &= POS_MASK;
    int nMinMatchSize = pCompressor->min_match_size;
 
-   if (pCompressor->format_version >= 2) {
-      for (i = 1; i < nInWindowSize; i++) {
-         int nIndex = (int)(intervals[i] & POS_MASK);
-         int nLen = PLCP[nIndex];
-         if (nLen < nMinMatchSize)
-            nLen = 0;
-         if (nLen > LCP_MAX)
-            nLen = LCP_MAX;
-         int nTaggedLen = 0;
-         if (nLen)
-            nTaggedLen = (nLen << TAG_BITS) | (lzsa_get_index_tag((unsigned int)nIndex) & ((1 << TAG_BITS) - 1));
-         intervals[i] = ((unsigned int)nIndex) | (((unsigned int)nTaggedLen) << LCP_SHIFT);
-      }
-   }
-   else {
-      for (i = 1; i < nInWindowSize; i++) {
-         int nIndex = (int)(intervals[i] & POS_MASK);
-         int nLen = PLCP[nIndex];
-         if (nLen < nMinMatchSize)
-            nLen = 0;
-         if (nLen > LCP_AND_TAG_MAX)
-            nLen = LCP_AND_TAG_MAX;
-         intervals[i] = ((unsigned int)nIndex) | (((unsigned int)nLen) << LCP_SHIFT);
-      }
+   for (i = 1; i < nInWindowSize; i++) {
+      int nIndex = (int)(intervals[i] & POS_MASK);
+      int nLen = PLCP[nIndex];
+      if (nLen < nMinMatchSize)
+         nLen = 0;
+      if (nLen > LCP_MAX)
+         nLen = LCP_MAX;
+      int nTaggedLen = 0;
+      if (nLen)
+         nTaggedLen = (nLen << TAG_BITS) | (lzsa_get_index_tag((unsigned int)nIndex) & ((1 << TAG_BITS) - 1));
+      intervals[i] = ((unsigned int)nIndex) | (((unsigned int)nTaggedLen) << LCP_SHIFT);
    }
 
    /**
@@ -238,7 +225,7 @@ int lzsa_find_matches_at(lzsa_compressor *pCompressor, const int nOffset, lzsa_m
    match_pos = super_ref & EXCL_VISITED_MASK;
    matchptr = pMatches;
 
-   if (pCompressor->format_version >= 2 && nInWindowSize < 65536) {
+   if (nInWindowSize < 65536) {
       if ((matchptr - pMatches) < nMaxMatches) {
          int nMatchOffset = (int)(nOffset - match_pos);
 
@@ -256,7 +243,7 @@ int lzsa_find_matches_at(lzsa_compressor *pCompressor, const int nOffset, lzsa_m
       if ((super_ref = pos_data[match_pos]) > ref) {
          match_pos = intervals[super_ref & POS_MASK] & EXCL_VISITED_MASK;
 
-         if (pCompressor->format_version >= 2 && nInWindowSize < 65536) {
+         if (nInWindowSize < 65536) {
             if ((matchptr - pMatches) < nMaxMatches) {
                int nMatchOffset = (int)(nOffset - match_pos);
 
@@ -280,12 +267,7 @@ int lzsa_find_matches_at(lzsa_compressor *pCompressor, const int nOffset, lzsa_m
          int nMatchOffset = (int)(nOffset - match_pos);
 
          if (nMatchOffset <= MAX_OFFSET && nMatchOffset != nPrevOffset) {
-            if (pCompressor->format_version >= 2) {
-               matchptr->length = (unsigned short)(ref >> (LCP_SHIFT + TAG_BITS));
-            }
-            else {
-               matchptr->length = (unsigned short)(ref >> LCP_SHIFT);
-            }
+            matchptr->length = (unsigned short)(ref >> (LCP_SHIFT + TAG_BITS));
             matchptr->offset = (unsigned short)nMatchOffset;
             matchptr++;
          }
@@ -296,7 +278,7 @@ int lzsa_find_matches_at(lzsa_compressor *pCompressor, const int nOffset, lzsa_m
       ref = super_ref;
       match_pos = intervals[ref & POS_MASK] & EXCL_VISITED_MASK;
 
-      if (pCompressor->format_version >= 2 && nInWindowSize < 65536) {
+      if (nInWindowSize < 65536) {
          if ((matchptr - pMatches) < nMaxMatches) {
             int nMatchOffset = (int)(nOffset - match_pos);
 

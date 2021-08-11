@@ -40,12 +40,8 @@
 
 #define BLOCK_SIZE 65536
 
-#define MIN_MATCH_SIZE_V1 3
-#define LITERALS_RUN_LEN_V1 7
-#define MATCH_RUN_LEN_V1 15
-
-#define MIN_MATCH_SIZE_V2 2
-#define LITERALS_RUN_LEN_V2 3
-#define MATCH_RUN_LEN_V2 7
+#define MIN_MATCH_SIZE 2
+#define LITERALS_RUN_LEN 3
+#define MATCH_RUN_LEN 7
 
 #endif /* _FORMAT_H */
