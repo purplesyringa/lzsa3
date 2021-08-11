@@ -45,10 +45,10 @@ Match:	MOV (SP)+,R0
 		CMP R0,#7
 		BNE Clone
 			CALL Extend
-Clone:	CMP R0,#376			; match length
+		CMP R0,#376			; match length
 		BEQ Exit
 
-		MOV R2,R3
+Clone:	MOV R2,R3
 		SUB R4,R3
 		MOVB (R3)+,(R2)+
 		INC R0
