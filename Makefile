@@ -1,5 +1,4 @@
-CC=clang
-CFLAGS=-O3 -g -fomit-frame-pointer -Isrc/libdivsufsort/include -Isrc -Wall
+CFLAGS=-O2 -g -Isrc/libdivsufsort/include -Isrc -Wall
 OBJDIR=obj
 LDFLAGS=
 
