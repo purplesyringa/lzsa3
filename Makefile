@@ -1,4 +1,4 @@
-CFLAGS=-O2 -g -Isrc/libdivsufsort/include -Isrc -Wall
+CFLAGS=-O2 -g -Isrc/libdivsufsort/include -Isrc -Wall -Wno-format
 OBJDIR=obj
 LDFLAGS=
 

@@ -30,6 +30,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -90,7 +91,7 @@ static long long do_get_time() {
 
 static void compression_progress(long long nOriginalSize, long long nCompressedSize) {
    if (nOriginalSize >= 1024 * 1024) {
-      fprintf(stdout, "\r%lld => %lld (%g %%)     \b\b\b\b\b", nOriginalSize, nCompressedSize, (double)(nCompressedSize * 100.0 / nOriginalSize));
+      fprintf(stdout, "\r" PRId64 " => " PRId64 " (%g %%)     \b\b\b\b\b", nOriginalSize, nCompressedSize, (double)(nCompressedSize * 100.0 / nOriginalSize));
       fflush(stdout);
    }
 }
@@ -137,7 +138,7 @@ static int do_compress(const char *pszInFilename, const char *pszOutFilename, co
    if ((nOptions & OPT_VERBOSE)) {
       double fDelta = ((double)(nEndTime - nStartTime)) / 1000000.0;
       double fSpeed = ((double)nOriginalSize / 1048576.0) / fDelta;
-      fprintf(stdout, "\rCompressed '%s' in %g seconds, %.02g Mb/s, %d tokens (%g bytes/token), %lld into %lld bytes ==> %g %%\n",
+      fprintf(stdout, "\rCompressed '%s' in %g seconds, %.02g Mb/s, %d tokens (%g bytes/token), " PRId64 " into " PRId64 " bytes ==> %g %%\n",
          pszInFilename, fDelta, fSpeed, nCommandCount, (double)nOriginalSize / (double)nCommandCount,
          nOriginalSize, nCompressedSize, (double)(nCompressedSize * 100.0 / nOriginalSize));
       fprintf(stdout, "Safe distance: %d (0x%X)\n", nSafeDist, nSafeDist);
