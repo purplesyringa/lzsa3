@@ -57,14 +57,14 @@ If the match length is 9 or more, the 'M' bits in the token form the value 7, an
 
 If an extra byte follows here, it can have two possible types of value:
 
-* 1-232, 234-255: add 23 to this value to compose the final match length. For instance: a length of 150 will be stored as 7 in the token + a nibble with the value of 0 + a single byte with the value of 127.
-* 233: end of data marker.
-* 0: a second and third byte follow, forming a big-endian 16-bit value. The final match length is that 16-bit value.
+* 1-234, 236-255: add 23 to this value to compose the final match length. For instance: a length of 150 will be stored as 7 in the token + a nibble with the value of 0 + a single byte with the value of 127.
+* 235: end of data marker.
+* 0: a second and third byte follow, forming a big-endian 16-bit value. The final match length is that 16-bit value plus 2.
 
 
 # End Of Data detection
 
-The last command in the stream has a 9-bit match offset set to zero and a match length byte 233. The reason for such a strange marker is performance: in this case the final match length equals 256, which allows for a quick check. Note that the last command may still contain a literal.
+The last command in the stream has a 9-bit match offset set to zero and a match length byte 235. The reason for such a strange marker is performance. In this case the final match length equals 258=256+2. Note that the last command may still contain a literal.
 
 
 # Reading nibbles

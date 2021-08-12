@@ -133,7 +133,7 @@ static inline int lzsa_get_match_varlen_size(const int nLength) {
       if (nLength < (MATCH_RUN_LEN + 15))
          return 4;
       else {
-         if (nLength < 24 - MIN_MATCH_SIZE + 255 && nLength + MIN_MATCH_SIZE != 256)
+         if (nLength < 24 - MIN_MATCH_SIZE + 255 && nLength != 256)
             return 4+8;
          else {
             return 4 + 24;
@@ -161,7 +161,7 @@ static inline int lzsa_write_match_varlen(unsigned char *pOutData, int nOutOffse
          nOutOffset = lzsa_write_nibble(pOutData, nOutOffset, nMaxOutDataSize, nCurNibbleOffset, 0);
          if (nOutOffset < 0) return -1;
 
-         if (nLength < 24 - MIN_MATCH_SIZE + 255 && nLength + MIN_MATCH_SIZE != 256)
+         if (nLength < 24 - MIN_MATCH_SIZE + 255 && nLength != 256)
             pOutData[nOutOffset++] = nLength + MIN_MATCH_SIZE - 24 + 1;
          else {
             pOutData[nOutOffset++] = 0;
@@ -1163,7 +1163,7 @@ static int lzsa_write_block(lzsa_compressor *pCompressor, lzsa_match *pBestMatch
    if ((nOutOffset + 1) > nMaxOutDataSize)
       return -1;
 
-   pOutData[nOutOffset++] = 233;    /* EOD match length byte */
+   pOutData[nOutOffset++] = 235;    /* EOD match length byte */
 
    if (nCurNibbleOffset != -1) {
       nOutOffset = lzsa_write_nibble(pOutData, nOutOffset, nMaxOutDataSize, &nCurNibbleOffset, 0);
@@ -1216,7 +1216,7 @@ static int lzsa_write_raw_uncompressed_block(lzsa_compressor *pCompressor, const
    if ((nOutOffset + 1) > nMaxOutDataSize)
       return -1;
 
-   pOutData[nOutOffset++] = 233;    /* EOD match length byte */
+   pOutData[nOutOffset++] = 235;    /* EOD match length byte */
 
    pCompressor->num_commands++;
 
