@@ -1,0 +1,56 @@
+; LZSA3 speed test
+
+		TimerCommand	= 177712	; timer port address
+		TimerCounter	= 177710
+		TimerInitial	= 177706
+
+
+		MOV #233,R0
+		EMT 16						; set 32 symbols per line
+		MOV #1,@#TimerInitial
+		MOV #1,@#TimerCommand		; stop and init timer
+		MOV #TimerCounter,R4
+		MTPS #340					; disable all interruptions
+		MOV #32,@#TimerCommand		; start timer
+1:		TST (R4)					; wait till it's really started
+		BNE	1
+
+		MOV #File,R1
+		MOV #40000,R2
+		CALL Unpack
+
+		MOV @#TimerCounter,R0	; get timer value
+		NEG R0
+		CALL DecOut
+		MTPS #0					; enable all interruptions
+
+	HALT
+
+; R0 - number to print
+DecOut:	MOV #Number,R1	; pointer to output text string
+		CLRB -(R1)		; end of text marker
+1:		CLR R5
+2:		INC R5			; counter of 10s +1
+		SUB #10.,R0
+		BHIS 2			; branch if higher or same
+		ADD #58.,R0		; #10. + '0' ASCII code
+		MOVB R0,-(R1)	; store R0 to text string
+		MOV R5,R0		; let's count how many 10s in number of 10s
+		SOB R0,1		; subtract 1 and loop if not zero
+		CLR R2
+		EMT 20			; print string
+		RET				; returns text string pointer in R1
+
+		.BLKB 12
+Number:
+
+
+.include "../asm/pdp11/unlzsa3.mac"
+
+Fin:
+
+;	.BLKB 2000-Fin
+
+File:	insert_file "facet.lzsa3"
+
+.END
