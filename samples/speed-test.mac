@@ -1,4 +1,4 @@
-; LZSA3 speed test
+; LZSA3 speed test for BK 0010
 
 		TimerCommand	= 177712	; timer port address
 		TimerCounter	= 177710
