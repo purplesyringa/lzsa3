@@ -1,6 +1,6 @@
 # LZSA3
 
-LZSA3 is a compression format based on [LZSA](https://github.com/emmanuel-marty/lzsa). It is a (highly unintuitive) modification of LZSA3 adjusted for very fast decompression on PDP-11-compatible systems. It can compress files up to 64 Kb in size.
+LZSA3 is a compression format based on [LZSA](https://github.com/emmanuel-marty/lzsa). It is a (highly unintuitive) modification of LZSA2 adjusted for very fast decompression on PDP-11-compatible systems. It can compress files up to 64 Kb in size.
 
 Please refer to the original LZSA project for examples, insipiration, comments, justifications, *et cetera*. LZSA3 is licensed under GNU General Public License version 3 or later.
 
