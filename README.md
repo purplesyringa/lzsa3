@@ -20,6 +20,6 @@ Compression:
 ./lzsa3 <infile> <outfile>
 ```
 
-Decompression: [LZSA3 decompressor for PDP-11](asm/pdp11) is available in this repository and takes only 200 bytes.
+Decompression: [LZSA3 decompressor for PDP-11](asm/pdp11) is available in this repository and takes only 198 bytes.
 
 [Compression format documentation](BlockFormat_LZSA3.md) is also available.
