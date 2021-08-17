@@ -29,7 +29,7 @@ If the literals length is 3 or more, the 'L' bits in the token form the value 3,
 If an extra byte follows, it can have two possible types of value:
 
 * 1-255: 17 is added to the value to compose the final literals length. For instance: a length of 206 will be stored as 3 in the token + a nibble with the value of 0 + a single byte with the value of 189.
-* 0: a second and third byte follow, forming a big-endian 16-bit value. The final literals value is that 16-bit value. For instance, a literals length of 1027 is stored as 3 in the token, a nibble with the value of 0, then byte values of 239, 4 and 3, as 3 + (4 * 256) = 1027.
+* 0: a second and third byte follow, forming a big-endian 16-bit value. The final literals value is that 16-bit value. For instance, a literals length of 1027 is stored as 3 in the token, a nibble with the value of 0, then byte values of 0, 4 and 3, as 3 + (4 * 256) = 1027.
 
 **literal values**
 
